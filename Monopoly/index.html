@@ -1,0 +1,405 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="gameData.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="myStyle.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="row d-none" id="game">
+            <div class="col-xl-9 col-lg-12">
+                <div class="grid-container">
+                    <div class="grid-item" id="13"></div>
+                    <div class="grid-item" id="14"></div>
+                    <div class="grid-item" id="15"></div>
+                    <div class="grid-item" id="16"></div>
+                    <div class="grid-item" id="17"></div>
+                    <div class="grid-item" id="18"></div>
+                    <div class="grid-item" id="19"></div>
+                    <div class="grid-item" id="12"></div>
+                    <div class="grid-item" id="20"></div>
+                    <div class="grid-item" id="11"></div>
+                    <div class="grid-item" id="21"></div>
+                    <div class="grid-item" id="10"></div>
+                    <div class="grid-item" id="22"></div>
+                    <div class="grid-item" id="9"></div>
+                    <div class="grid-item" id="23"></div>
+                    <div class="grid-item" id="8"></div>
+                    <div class="grid-item" id="24"></div>
+                    <div class="grid-item" id="7"></div>
+                    <div class="grid-item" id="6"></div>
+                    <div class="grid-item" id="5"></div>
+                    <div class="grid-item" id="4"></div>
+                    <div class="grid-item" id="3"></div>
+                    <div class="grid-item" id="2"></div>
+                    <div class="grid-item" id="1"></div>
+
+                    <div class="itemMid">
+                        <div class="row">
+                            <div class="col-3" style="padding-top:30px;padding-left:20px">
+                                <input type="button" value="Roll dice" onclick="rollDice()" style="margin-bottom:10px" />
+                                <table>
+                                    <tr style="padding-top:20px">
+                                        <td><input class="form-control" type="text" id="dice1" style="width:40px" readonly></td>
+                                        <td><input class="form-control" type="text" id="dice2" style="width:40px" readonly></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6" id="logo" style="margin-top:90px;margin-left:30px"></div>
+                            <div class="col-3" style="padding-top:30px;padding-left:20px;">
+                                <input type="button" value="Buy Property" onclick="buyProperty()" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-xl-3 col-lg-12">
+                <div class="col playerInfo">
+                    <div>Player 1</div>
+                    <div class="row">
+                        <div class="col-2">Cash: </div>
+                        <div class="col-3" id="cash1" style="color:green;font-weight:bold"></div>
+                        <div class="col-3">Wealth: </div>
+                        <div class="col-2" id="wealth1" style="color:gold"></div>
+                    </div>
+                    <div><u><b>Properties own: </b></u></div>
+                    <div id="properties1"></div>
+
+                </div>
+                <div class="col playerInfo">
+                    <div>Player 2</div>
+                    <div class="row">
+                        <div class="col-2">Cash: </div>
+                        <div class="col-3 cash" id="cash2" style="color:green;font-weight:bold"></div>
+                        <div class="col-3">Wealth: </div>
+                        <div class="col-2" id="wealth2" style="color:gold"></div>
+                    </div>
+                    <div><u><b>Properties own: </b></u></div>
+                    <div id="properties2"></div>
+                </div>
+                <input type="button" value="End Game" onclick="endGame()" style="margin-left:30px;" />
+            </div>
+            </div>
+        <div id="startPage">
+            <div class="title">Monopoly</div>
+            <table>
+                <tr>
+                    <td>Choose the starting cash:</td>
+                    <td class="add" style="padding-left:30px"><input type="number" id="cash" value="0" /></td>
+                </tr>
+                <tr>
+                    <td>Choose the theme:</td>
+                    <td class="add" style="padding-left:30px" >
+                        <select id="theme">
+                            <option>Steam Games</option>
+                            <option>Lego</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <div class="add" style="padding-top:50px;text-align:center">
+                <input type="button" value="Start game" onclick="initiateGame()"/>
+            </div>
+        </div>
+        </div>
+       <script>
+
+           window.onload = checkStatus;
+
+           var theme;
+           var turn = 1;
+           var sel;
+
+           var player1 = {
+              cash: 0,
+              location: 1,
+              properties: [],
+              totalWealth: 0,
+           };
+           var player2 = {
+               cash: 0,
+               location: 1,
+               properties: [],
+               totalWealth: 0,
+           };
+
+           function checkStatus() {
+               if (localStorage.theme != undefined) {
+                   swal({
+                       title: "A game is already in progress. Would you like to continue?",
+                       buttons: {
+                           yes: true,
+                           cancel: "No, start a new game"
+                       }
+                   }).then(val => {
+                       if (val) {
+                           resumeGame();
+                       }
+                   })
+                       
+               }
+           }
+
+           function initiateGame() {
+               cash = parseInt(document.getElementById("cash").value);
+               if (cash <= 0) {
+                   swal("Please enter a value above 0");
+                   return;
+               }
+               player1.cash = cash;
+               player2.cash = cash;
+
+               localStorage.player1 = JSON.stringify(player1);
+               localStorage.player2 = JSON.stringify(player2);
+               localStorage.turn = turn;
+
+               theme = document.getElementById("theme").value;
+               localStorage.theme = theme;
+
+               initiateProperties(theme);
+                
+               document.getElementById("1").innerHTML += "<div class='circleRed'></div><div class='circleBlue'></div>";
+                
+
+               document.getElementById("game").className = "row";
+               document.getElementById("startPage").className = "startPage d-none";
+               updateInfo();
+
+           }
+           function initiateProperties(theme) {
+               if (theme == "Steam Games") {
+                   for (var i = 0; i < game.steam.properties.length; i++) {
+                       if (game.steam.properties[i].group != "Corner") {
+                           document.getElementById(i + 1).innerHTML += " <img style='background: url('" + game.steam.properties[i].img + ")' src=" + game.steam.properties[i].img + " />";
+                           document.getElementById(i + 1).innerHTML += "<div class='square-text'>" + game.steam.properties[i].name + "<br/>" + game.steam.properties[i].value + "$</div>";
+                       }
+                       else {
+                           document.getElementById(i + 1).innerHTML += "<div class='corner-text'>" + game.steam.properties[i].name + "</div>";
+                       }
+                   }
+                   document.getElementById("logo").innerHTML = "<img src='img/steam.jpg' />";
+                   sel = game.steam;
+               }
+               else if (theme == "Lego") {
+                   for (var i = 0; i < game.lego.properties.length; i++) {
+                       if (game.lego.properties[i].group != "Corner") {
+                           document.getElementById(i + 1).innerHTML += " <img style='background: url('" + game.lego.properties[i].img + ")' src=" + game.lego.properties[i].img + " />";
+                           document.getElementById(i + 1).innerHTML += "<div class='square-text'>" + game.lego.properties[i].name + "<br/>" + game.lego.properties[i].value + "$</div>";
+                       }
+                       else {
+                           document.getElementById(i + 1).innerHTML += "<div class='corner-text'>" + game.lego.properties[i].name + "</div>";
+                       }
+                   }
+                   document.getElementById("logo").innerHTML = "<img src='img/lego.png' />";
+                   sel = game.lego;
+               }
+           }
+
+           function resumeGame() {
+               initiateProperties(localStorage.theme);
+               player1 = JSON.parse(localStorage.player1);
+               player2 = JSON.parse(localStorage.player2);
+               turn = localStorage.turn;
+
+               for (var i = 0; i < player1.properties.length; i++) {
+                   document.getElementById("properties1").innerHTML += player1.properties[i].name + ", ";
+               }
+               for (var i = 0; i < player2.properties.length; i++) {
+                   document.getElementById("properties2").innerHTML += player2.properties[i].name + ", ";
+               }
+
+               document.getElementById("game").className = "row";
+               document.getElementById("startPage").className = "startPage d-none";
+
+               removeElementsByClass("circleRed");
+               document.getElementById(player1.location).innerHTML += "<div class='circleRed'></div>";
+
+               removeElementsByClass("circleBlue");
+               document.getElementById(player2.location).innerHTML += "<div class='circleBlue'></div>";
+
+               
+
+               updateInfo();
+           }
+
+           function rollDice() {
+               dice1 = Math.floor(Math.random() * 6) + 1;
+               dice2 = Math.floor(Math.random() * 6) + 1;
+               document.getElementById("dice1").value = dice1;
+               document.getElementById("dice2").value = dice2;
+
+               if (turn % 2 == 1) {
+                   nextPos = player1.location + dice1 + dice2; 
+                   if (nextPos > 24) {
+                       nextPos -= 24;
+                       player1.cash += 100;
+                       swal("You went thought the starting point, get 100$")
+                   }
+
+                   removeElementsByClass("circleRed")
+                   document.getElementById(nextPos).innerHTML += "<div class='circleRed'></div>";
+                   player1.location = nextPos;
+
+                   ownByOther(player1, player2);
+
+                   turn++;
+               }
+               else {
+                   nextPos = player2.location + dice1 + dice2;
+                   if (nextPos > 24) {
+                       nextPos -= 24;
+                       player2.cash += 100;
+                       swal("You went thought the starting point, get 100$")
+                   }
+
+                   removeElementsByClass("circleBlue")
+                   document.getElementById(nextPos).innerHTML += "<div class='circleBlue'></div>";
+                   player2.location = nextPos;
+
+                   ownByOther(player2, player1);
+
+                   turn++;
+               }
+               updateInfo();
+           }
+
+           function removeElementsByClass(className) {
+               var elements = document.getElementsByClassName(className);
+               while (elements.length > 0) {
+                   elements[0].parentNode.removeChild(elements[0]);
+               }
+           }
+
+           
+           
+           function buyProperty() {
+               if (turn % 2 == 0) {
+                   tmpLoc = player1.location - 1
+
+                   if (ownCheck(player1, tmpLoc) || ownCheck(player2, tmpLoc)) {
+                       swal("This property belong to someone!");
+                       return;
+                   }
+                   else if (sel.properties[tmpLoc].group == "Corner") {
+                       swal("You can't buy this property!");
+                       return;
+                   }
+                   else if (player1.cash >= sel.properties[tmpLoc].value) {
+                       swal("You have successfully bought this property!");
+                       player1.properties.push(sel.properties[tmpLoc]);
+                       player1.cash -= sel.properties[tmpLoc].value;
+                       document.getElementById("properties1").innerHTML += sel.properties[tmpLoc].name + ", ";
+                   }
+                   else {
+                       swal("You don't have enough cash!");
+                       return;
+                   }
+               }
+               else {
+                   tmpLoc = player2.location - 1
+
+                   if (ownCheck(player1, tmpLoc) || ownCheck(player2, tmpLoc)) {
+                       swal("This property belong to someone!");
+                       return;
+                   }
+                   else if (sel.properties[tmpLoc].group == "Corner") {
+                       swal("You can't buy this property!");
+                       return;
+                   }
+                   else if (player2.cash >= sel.properties[tmpLoc].value) {
+                       swal("You have successfully bought this property!");
+                       player2.properties.push(sel.properties[tmpLoc]);
+                       player2.cash -= sel.properties[tmpLoc].value;
+                       document.getElementById("properties2").innerHTML += sel.properties[tmpLoc].name + ", ";
+                   }
+                   else {
+                       swal("You don't have enough cash!");
+                       return;
+                   }
+               }
+               updateInfo();
+           }
+           function updateInfo() {
+               document.getElementById("cash1").innerHTML = player1.cash;
+               document.getElementById("cash2").innerHTML = player2.cash;
+
+               wealth = player1.cash;
+
+               for (var i = 0; i < player1.properties.length; i++) {
+                   wealth += player1.properties[i].value / 2; 
+               }
+               document.getElementById("wealth1").innerHTML = wealth;
+               player1.totalWealth = wealth;
+
+               wealth = player2.cash
+
+               for (var i = 0; i < player2.properties.length; i++) {
+                   wealth += player2.properties[i].value / 2;
+               }
+               document.getElementById("wealth2").innerHTML = wealth;
+               player2.totalWealth = wealth;
+
+               localStorage.player1 = JSON.stringify(player1);
+               localStorage.player2 = JSON.stringify(player2);
+               localStorage.turn = turn;
+           }
+           function ownByOther(current, other) {
+               tmpLoc = current.location - 1
+
+               if (ownCheck(other, tmpLoc)) {
+                   current.cash -= sel.properties[tmpLoc].value / 10;
+                   other.cash += sel.properties[tmpLoc].value / 10;
+                   swal("This property already belong to the other player!")
+               }
+               if (current.cash < 0)
+                   endGame();
+
+               updateInfo();
+           }
+           function ownCheck(player, x) {
+               for (var i = 0; i < player.properties.length; i++) {
+                   if (player.properties[i] == sel.properties[x])
+                       return true;
+               }
+               return false;
+           }
+           function endGame() {
+               if (player1.totalWealth > player2.totalWealth)
+                   swal("The game is over! player 1 won!");
+               else if (player1.totalWealth < player2.totalWealth)
+                   swal("The game is over! player 2 won!");
+               else swal("The game is over! it's a tie!");
+
+               player1.cash = 0;
+               player1.location = 1;
+               player1.properties = []
+               player1.totalWealth = 0;    
+         
+               player2.cash = 0;
+               player2.location = 1;
+               player2.properties = []
+               player2.totalWealth = 0;
+
+               turn = 1;
+
+               document.getElementById("game").className = "row d-none";
+               document.getElementById("startPage").className = "";
+
+               for (var i = 0; i < sel.properties.length; i++) {
+                   document.getElementById(i + 1).innerHTML = "";
+               }
+               document.getElementById("properties1").innerHTML = "";
+               document.getElementById("properties2").innerHTML = "";   
+               localStorage.clear();    
+           }
+               
+       </script>
+    
+</body>
+</html>
